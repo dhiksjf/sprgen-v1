@@ -101,8 +101,8 @@
             <div class="lp">
                 <div class="p">
                     <h2>Input</h2>
-                    <div class="dz" id="dz"><div class="icon">📁</div><p>Drop file or click to browse</p><div class="ft"><span>PNG</span><span>JPG</span><span>GIF</span><span>MP4</span><span>WEBM</span><span class="spr-badge">SPR</span></div></div>
-                    <input type="file" id="fi" accept="image/*,video/*,.spr">
+                    <div class="dz" id="dz"><div class="icon">📁</div><p>Drop file or click to browse</p><div class="ft"><span>PNG</span><span>JPG</span><span>GIF</span><span>TGA</span><span>MP4</span><span>WEBM</span><span class="spr-badge">SPR</span></div></div>
+                    <input type="file" id="fi" accept="image/*,video/*,.spr,.tga">
                     <div class="fl" id="fl"></div>
                     <div class="pb" id="pb"><div class="pf" id="pf"></div></div>
                     <div class="sm" id="sm"></div>
@@ -111,14 +111,21 @@
                     <h2>Settings</h2>
                     <div class="fg"><label>Orientation</label><select id="ori"><option value="0">VP Parallel Upright</option><option value="2" selected>VP Parallel</option><option value="1">Facing Upright</option><option value="3">Oriented</option><option value="4">VP Parallel Oriented</option></select></div>
                     <div class="fg"><label>Texture Format</label><select id="tex"><option value="0">Normal</option><option value="1" selected>Additive</option><option value="2">Index Alpha</option><option value="3">Alpha Test</option></select></div>
+                    <div class="sm i" id="texInfo" style="display:none;margin-bottom:10px;font-size:.82rem"></div>
                     <div class="fr">
                         <div class="fg"><label>Max Width</label><input type="number" id="mw" value="128" min="16" max="256" step="16"></div>
                         <div class="fg"><label>Max Height</label><input type="number" id="mh" value="128" min="16" max="256" step="16"></div>
                     </div>
-                    <div class="cg"><input type="checkbox" id="ug" checked><label for="ug">Group frames (animation)</label></div>
+                    <div class="cg"><input type="checkbox" id="ug"><label for="ug">Group frames (animation)</label></div>
+                    <div id="ugWarn" style="display:none;margin-bottom:10px;padding:8px 12px;background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.3);border-radius:8px;font-size:.8rem;color:#fbbf24;line-height:1.5">
+                        ⚠️ <b>SprView shows GROUP sprites as black</b> — this is a SprView limitation, not a bug. The SPR will work correctly in-game (Half-Life/CS). Uncheck if you only need SprView compatibility.
+                    </div>
                     <div class="fg" id="fgg"><label>Video FPS</label><input type="number" id="vf" value="10" min="1" max="30"></div>
                     <div class="fg"><label>Output Name</label><input type="text" id="on" value="sprite.spr"></div>
                     <button class="btn btn-p" id="cb" disabled>Convert</button>
+                    <div style="margin-top:12px;padding:10px 12px;background:rgba(255,0,255,.08);border:1px solid rgba(255,0,255,.25);border-radius:8px;font-size:.8rem;color:#d8b4fe;line-height:1.5">
+                        🟣 <b>Pink/magenta background is normal.</b> GoldSrc uses RGB(255,0,255) as the transparency key — it appears pink in SprView but will be <b>fully transparent in-game</b>.
+                    </div>
                 </div>
             </div>
             <div class="rp">
@@ -281,18 +288,32 @@
             }
             find(r,g,b,a=255,tr=false){if(tr && a < 10) return this.t;let bi=0,bd=1e9;for(let i=0;i<256;i++){const dr=r-this.c[i*3],dg=g-this.c[i*3+1],db=b-this.c[i*3+2];const d=dr*dr+dg*dg+db*db;if(d<bd){bd=d;bi=i}}return bi}
             get(i){const idx=Math.max(0,Math.min(255,i));return{r:this.c[idx*3]||0,g:this.c[idx*3+1]||0,b:this.c[idx*3+2]||0}}
+            buildIndexAlpha(imgData){
+                let sr=0,sg=0,sb=0,cnt=0;
+                for(let i=0;i<imgData.data.length;i+=4){if(imgData.data[i+3]>10){sr+=imgData.data[i];sg+=imgData.data[i+1];sb+=imgData.data[i+2];cnt++}}
+                const r=cnt?Math.round(sr/cnt):255,g=cnt?Math.round(sg/cnt):255,b=cnt?Math.round(sb/cnt):255;
+                for(let i=0;i<256;i++){this.c[i*3]=r;this.c[i*3+1]=g;this.c[i*3+2]=b}
+            }
         }
 
         class SpriteFrame{
             constructor(){this.o=[0,0];this.w=0;this.h=0;this.d=null}
-            static fromImg(img,pal,ox=0,oy=0){
+            static fromImg(img,pal,ox=0,oy=0,texFormat=0){
                 const f=new SpriteFrame();
                 f.w=img.width;f.h=img.height;f.o=[ox,oy];
                 f.d=new Uint8Array(f.w*f.h);
+                const isIndexAlpha=texFormat===SPR_TEX_FORMAT.INDEXALPHA;
                 for(let y=0;y<f.h;y++){
                     for(let x=0;x<f.w;x++){
                         const si=(y*f.w+x)*4,di=y*f.w+x;
-                        f.d[di]=pal.find(img.data[si],img.data[si+1],img.data[si+2],img.data[si+3],true);
+                        if(isIndexAlpha){
+                            // pixel value = alpha channel (luminance or alpha)
+                            const a=img.data[si+3];
+                            const lum=Math.round(0.299*img.data[si]+0.587*img.data[si+1]+0.114*img.data[si+2]);
+                            f.d[di]=img.data[si+3]<10?0:lum;
+                        }else{
+                            f.d[di]=pal.find(img.data[si],img.data[si+1],img.data[si+2],img.data[si+3],true);
+                        }
                     }
                 }
                 return f;
@@ -310,14 +331,26 @@
                 for(let i=0;i<sz;i++)f.d[i]=v.getUint8(o+16+i);
                 return{f,newO:o+16+sz};
             }
-            render(c,p){
+            render(c,p,texFormat=0){
                 c.width=this.w;c.height=this.h;
-                const x=c.getContext('2d'),i=x.createImageData(this.w,this.h);
+                const x=c.getContext('2d'),id=x.createImageData(this.w,this.h);
                 for(let j=0;j<this.d.length;j++){
                     const ci=this.d[j],co=p.get(ci);
-                    i.data[j*4]=co.r||0;i.data[j*4+1]=co.g||0;i.data[j*4+2]=co.b||0;i.data[j*4+3]=ci===255?0:255;
+                    let r=co.r||0,g=co.g||0,b=co.b||0,a=255;
+                    if(texFormat===SPR_TEX_FORMAT.INDEXALPHA){
+                        // index IS alpha; color comes from palette entry 0
+                        const c0=p.get(0);
+                        r=c0.r||0;g=c0.g||0;b=c0.b||0;a=ci;
+                    }else if(texFormat===SPR_TEX_FORMAT.ADDITIVE){
+                        // black=invisible in additive; show on dark bg
+                        a=Math.round((r*299+g*587+b*114)/1000);
+                    }else{
+                        // Normal / AlphaTest: index 255 = transparent
+                        a=ci===255?0:255;
+                    }
+                    id.data[j*4]=r;id.data[j*4+1]=g;id.data[j*4+2]=b;id.data[j*4+3]=a;
                 }
-                x.putImageData(i,0,0);
+                x.putImageData(id,0,0);
             }
         }
 
@@ -327,7 +360,8 @@
             sz(){let s=4+this.f.length*4;for(const f of this.f)s+=f.sz();return s}
             ser(v,o){
                 o=wI(v,o,this.f.length);
-                let ti=0;for(let j=0;j<this.i.length;j++){ti+=this.i[j];o=wF(v,o,ti)}
+                // GoldSrc expects individual frame durations (NOT cumulative)
+                for(let j=0;j<this.i.length;j++){o=wF(v,o,this.i[j])}
                 for(const f of this.f)o=f.ser(v,o);
                 return o;
             }
@@ -387,38 +421,56 @@
             }
             static fromImg(img,opt={}){
                 const{orientation=SPR_TYPE.VP_PARALLEL,texFormat=SPR_TEX_FORMAT.NORMAL,originX=0,originY=0,maxWidth=256,maxHeight=256}=opt;
+                const mw=Math.max(16,Math.floor(maxWidth/16)*16);
+                const mh=Math.max(16,Math.floor(maxHeight/16)*16);
                 const s=new Sprite();s.setO(orientation);s.setT(texFormat);
                 const c=document.createElement('canvas');
-                let w=Math.min(Math.ceil(img.width/16)*16,maxWidth);
-                let h=Math.min(Math.ceil(img.height/16)*16,maxHeight);
+                let w=Math.min(Math.ceil(img.width/16)*16,mw);
+                let h=Math.min(Math.ceil(img.height/16)*16,mh);
                 c.width=w;c.height=h;
                 const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0,w,h);
                 const id=x.getImageData(0,0,w,h);
-                s.p.fromImg(id,true);
-                s.addF(SpriteFrame.fromImg(id,s.p,originX,originY));
+                if(texFormat===SPR_TEX_FORMAT.INDEXALPHA){s.p.buildIndexAlpha(id)}
+                else{s.p.fromImg(id,true)}
+                s.addF(SpriteFrame.fromImg(id,s.p,originX,originY,texFormat));
                 return s;
             }
             static fromImgs(imgs,opt={}){
-                const{orientation=SPR_TYPE.VP_PARALLEL,texFormat=SPR_TEX_FORMAT.NORMAL,originX=0,originY=0,maxWidth=256,maxHeight=256}=opt;
+                const{orientation=SPR_TYPE.VP_PARALLEL,texFormat=SPR_TEX_FORMAT.NORMAL,originX=0,originY=0,maxWidth=256,maxHeight=256,useGroups=false,fps=10}=opt;
+                // Snap maxWidth/maxHeight to multiples of 16
+                const mw=Math.max(16,Math.floor(maxWidth/16)*16);
+                const mh=Math.max(16,Math.floor(maxHeight/16)*16);
                 const s=new Sprite();s.setO(orientation);s.setT(texFormat);
                 const all=[];
                 for(const img of imgs){
                     const c=document.createElement('canvas');
-                    let w=Math.min(Math.ceil(img.width/16)*16,maxWidth);
-                    let h=Math.min(Math.ceil(img.height/16)*16,maxHeight);
+                    let w=Math.min(Math.ceil(img.width/16)*16,mw);
+                    let h=Math.min(Math.ceil(img.height/16)*16,mh);
                     c.width=w;c.height=h;
                     const x=c.getContext('2d',{willReadFrequently:true});x.drawImage(img,0,0,w,h);
                     all.push(x.getImageData(0,0,w,h));
                 }
-                const px=[];
-                for(const id of all){
-                    const d=id.data;
-                    for(let i=0;i<d.length;i+=16){
-                        if(d[i+3]>128)px.push([d[i],d[i+1],d[i+2]]);
+                const isIndexAlpha=texFormat===SPR_TEX_FORMAT.INDEXALPHA;
+                if(isIndexAlpha){
+                    s.p.buildIndexAlpha(all[0]);
+                }else{
+                    const px=[];
+                    for(const id of all){
+                        const d=id.data;
+                        for(let i=0;i<d.length;i+=16){
+                            if(d[i+3]>128)px.push([d[i],d[i+1],d[i+2]]);
+                        }
                     }
+                    s.p.fromImgData(px,255,true);
                 }
-                s.p.fromImgData(px,255,true);
-                for(const id of all)s.addF(SpriteFrame.fromImg(id,s.p,originX,originY));
+                if(useGroups&&all.length>1){
+                    const g=new SpriteFrameGroup();
+                    const iv=1/fps;
+                    for(const id of all)g.add(SpriteFrame.fromImg(id,s.p,originX,originY,texFormat),iv);
+                    s.addG(g);
+                }else{
+                    for(const id of all)s.addF(SpriteFrame.fromImg(id,s.p,originX,originY,texFormat));
+                }
                 return s;
             }
             dl(fn='sprite.spr'){
@@ -451,30 +503,86 @@
                 return frames;
             }
             async convert(src,opt={}){
-                const{orientation=SPR_TYPE.VP_PARALLEL,texFormat=SPR_TEX_FORMAT.NORMAL,frameInterval=0.1,originX=0,originY=0}=opt;
+                const{orientation=SPR_TYPE.VP_PARALLEL,texFormat=SPR_TEX_FORMAT.NORMAL,frameInterval=0.1,originX=0,originY=0,useGroups=false,fps=10}=opt;
                 const frames=await this.extract(src,opt);
                 if(frames.length===0)throw new Error('No frames');
                 const s=new Sprite();s.setO(orientation);s.setT(texFormat);
-                const px=[];
-                for(const f of frames){
-                    const d=f.data;
-                    for(let i=0;i<d.length;i+=16){
-                        if(d[i+3]>128)px.push([d[i],d[i+1],d[i+2]]);
+                const isIndexAlpha=texFormat===SPR_TEX_FORMAT.INDEXALPHA;
+                if(isIndexAlpha){
+                    s.p.buildIndexAlpha(frames[0]);
+                }else{
+                    const px=[];
+                    for(const f of frames){
+                        const d=f.data;
+                        for(let i=0;i<d.length;i+=16){
+                            if(d[i+3]>128)px.push([d[i],d[i+1],d[i+2]]);
+                        }
                     }
+                    s.p.fromImgData(px,255);
                 }
-                s.p.fromImgData(px,255);
-                for(const f of frames)
-                    s.addF(SpriteFrame.fromImg(f,s.p,originX,originY));
+                const iv=1/fps;
+                if(useGroups&&frames.length>1){
+                    const g=new SpriteFrameGroup();
+                    for(const f of frames)g.add(SpriteFrame.fromImg(f,s.p,originX,originY,texFormat),iv);
+                    s.addG(g);
+                }else{
+                    for(const f of frames)s.addF(SpriteFrame.fromImg(f,s.p,originX,originY,texFormat));
+                }
                 return s;
             }
         }
 
         const SPR={VERSION:SPRITE_VERSION,HEADER:IDSPRITEHEADER,TYPE:SPR_TYPE,TEX_FORMAT:SPR_TEX_FORMAT,FRAME_TYPE:SPR_FRAME_TYPE,SYNC_TYPE:SPR_SYNC_TYPE,Palette,SpriteFrame,SpriteFrameGroup,Sprite,VideoConverter};
 
+        // ===== TGA Parser =====
+        function parseTGA(buffer){
+            const d=new Uint8Array(buffer);
+            const idLen=d[0],cmType=d[1],imgType=d[2];
+            const cmLen=(d[5]|(d[6]<<8)),cmBpp=d[7];
+            const width=d[12]|(d[13]<<8),height=d[14]|(d[15]<<8);
+            const bpp=d[16],desc=d[17];
+            if(!width||!height)throw new Error('Invalid TGA dimensions');
+            let off=18+idLen;
+            if(cmType===1)off+=cmLen*Math.ceil(cmBpp/8);
+            const flipY=!(desc&0x20),flipX=!!(desc&0x10);
+            const Bpp=Math.ceil(bpp/8);
+            const px=new Uint8Array(width*height*4);
+            function rp(o){
+                let r,g,b,a=255;
+                if(bpp===32){b=d[o];g=d[o+1];r=d[o+2];a=d[o+3]}
+                else if(bpp===24){b=d[o];g=d[o+1];r=d[o+2]}
+                else if(bpp===16){const v=d[o]|(d[o+1]<<8);r=((v>>10)&31)<<3;g=((v>>5)&31)<<3;b=(v&31)<<3}
+                else{r=g=b=d[o]}
+                return[r,g,b,a];
+            }
+            function wp(count,r,g,b,a){
+                const y=Math.floor(count/width),x=count%width;
+                const dy=flipY?(height-1-y):y,dx=flipX?(width-1-x):x;
+                const i=(dy*width+dx)*4;
+                px[i]=r;px[i+1]=g;px[i+2]=b;px[i+3]=a;
+            }
+            if(imgType===2||imgType===3){
+                // Uncompressed
+                for(let n=0;n<width*height;n++){const[r,g,b,a]=rp(off);wp(n,r,g,b,a);off+=Bpp}
+            }else if(imgType===10||imgType===11){
+                // RLE
+                let n=0;
+                while(n<width*height){
+                    const rep=d[off++];const isRLE=rep&0x80;const cnt=(rep&0x7F)+1;
+                    if(isRLE){const[r,g,b,a]=rp(off);off+=Bpp;for(let i=0;i<cnt;i++)wp(n++,r,g,b,a)}
+                    else{for(let i=0;i<cnt;i++){const[r,g,b,a]=rp(off);off+=Bpp;wp(n++,r,g,b,a)}}
+                }
+            }else throw new Error('Unsupported TGA image type: '+imgType);
+            const c=document.createElement('canvas');c.width=width;c.height=height;
+            const ctx=c.getContext('2d');const id=ctx.createImageData(width,height);
+            id.data.set(px);ctx.putImageData(id,0,0);
+            return c;
+        }
+
         // ===== App Code =====
         const OPENROUTER_KEY='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';
         
-        let lf=null,cs=null,aiTimer=null,cf=0,ip=false,isSPR=false,animFrames=[],animIntervals=[];
+        let lf=null,cs=null,aiTimer=null,cf=0,ip=false,isSPR=false,animFrames=[],animIntervals=[],tgaCanvas=null;
         let aiRecommendedSettings=null;
         const $=id=>document.getElementById(id),$$=sel=>document.querySelectorAll(sel);
         const dz=$('dz'),fi=$('fi'),fl=$('fl'),cb=$('cb'),pb=$('pb'),pf=$('pf'),sm=$('sm'),pc=$('pc'),ac=$('ac'),fc=$('fc');
@@ -485,6 +593,31 @@
         dz.ondrop=e=>{e.preventDefault();dz.classList.remove('dragover');hf(e.dataTransfer.files)};
         fi.onchange=e=>hf(e.target.files);
         $$('.ptb').forEach(t=>t.onclick=()=>{$$('.ptb').forEach(b=>b.classList.remove('a'));t.classList.add('a');up(t.dataset.t)});
+
+        // Texture format info hints
+        const texHints={
+            0:'Normal: transparent pixels (alpha<50%) become palette index 255 (magenta) → transparent in-game.',
+            1:'Additive: sprite pixels are added to the scene color — black=invisible, white=fully bright. Great for glows/fire.',
+            2:'Index Alpha: pixel luminance = alpha amount. All pixels use one averaged color. Best for soft glows.',
+            3:'Alpha Test: index 255 = fully transparent, all other indices = fully opaque. Hard-edge transparency.'
+        };
+        $('tex').addEventListener('change',function(){
+            const h=texHints[this.value];
+            const el=$('texInfo');
+            if(h){el.textContent='ℹ️ '+h;el.style.display='block'}else{el.style.display='none'}
+        });
+
+        // Show/hide FPS field based on loaded file type
+        function updateFpsVisibility(){
+            const show=lf&&lf.type.startsWith('video/');
+            $('fgg').style.display=show?'block':'none';
+        }
+        updateFpsVisibility();
+
+        // Show warning when group frames enabled
+        $('ug').addEventListener('change',function(){
+            $('ugWarn').style.display=this.checked?'block':'none';
+        });
         
         $('pl').onclick=()=>{
     if(!cs||!cs.fr.length)return;
@@ -518,8 +651,9 @@
         function playNextFrame(){
             if(!ip)return;
             const c=$('cv');
+            const tf=cs?cs.tf:0;
             if(c&&animFrames[cf]){
-                animFrames[cf].render(c,cs.p);
+                animFrames[cf].render(c,cs.p,tf);
                 fc.textContent=`Frame: ${cf+1}/${animFrames.length}`;
             }
             const interval=(animIntervals[cf]||0.1)*1000;
@@ -552,13 +686,42 @@
                 return;
             }
             
+            if(f.name.toLowerCase().endsWith('.tga')){
+                const reader=new FileReader();
+                reader.onload=e=>{
+                    try{
+                        tgaCanvas=parseTGA(e.target.result);
+                        isSPR=false;
+                        lf=f;
+                        uf();
+                        updateFpsVisibility();
+                        cb.disabled=false;
+                        // Show TGA canvas as preview
+                        pc.innerHTML='';
+                        const img=new Image();
+                        img.src=tgaCanvas.toDataURL();
+                        img.style.maxWidth='100%';
+                        img.style.maxHeight='350px';
+                        pc.appendChild(img);
+                        ac.style.display='none';
+                        show('TGA image loaded!','s');
+                    }catch(err){
+                        show('Invalid TGA file: '+err.message,'e');
+                    }
+                };
+                reader.readAsArrayBuffer(f);
+                return;
+            }
+            
             const isImage=f.type.startsWith('image/');
             const isVideo=f.type.startsWith('video/');
             if(!isImage&&!isVideo){show('Please upload an image, video, or SPR file','e');return}
             
+            tgaCanvas=null;
             isSPR=false;
             lf=f;
             uf();
+            updateFpsVisibility();
             cb.disabled=false;
             pv(f);
             show(`${isImage?'Image':'Video'} loaded!`,'s');
@@ -696,11 +859,13 @@ Respond ONLY with the JSON object, no other text.`;
             cf=0;
             ip=false;
             isSPR=false;
+            tgaCanvas=null;
             animFrames=[];
             animIntervals=[];
             aiRecommendedSettings=null;
             if(aiTimer){clearTimeout(aiTimer);aiTimer=null}
             uf();
+            updateFpsVisibility();
             cb.disabled=true;
             rp();
             $$('.ptb').forEach(b=>b.classList.remove('a'));
@@ -745,6 +910,7 @@ Respond ONLY with the JSON object, no other text.`;
         }
         
         function up(t){
+            const tf=cs?cs.tf:0; // texture format for correct preview rendering
             if(t==='spr'){
                 if(!cs){pc.innerHTML='<div class="ph"><div class="icon">📦</div><p>Load an SPR file to view</p></div>';ac.style.display='none';return}
                 const frameData=cs.fr[0];
@@ -754,10 +920,9 @@ Respond ONLY with the JSON object, no other text.`;
                 if(!f){pc.innerHTML='<div class="ph"><div class="icon">📦</div><p>Cannot render frame</p></div>';ac.style.display='none';return}
                 const c=document.createElement('canvas');
                 c.id='cv';
-                f.render(c,cs.p);
+                f.render(c,cs.p,tf);
                 pc.innerHTML='';
                 pc.appendChild(c);
-                // Support both GROUP frames and multiple SINGLE frames
                 const hasMultipleFrames=isGroup?frameData.d.f.length>1:cs.fr.length>1;
                 ac.style.display=hasMultipleFrames?'flex':'none';
                 if(isGroup){
@@ -765,7 +930,6 @@ Respond ONLY with the JSON object, no other text.`;
                     animIntervals=frameData.d.i;
                     fc.textContent=`Frame: 1/${animFrames.length}`;
                 }else if(cs.fr.length>1){
-                    // Multiple individual frames
                     animFrames=cs.fr.map(fr=>fr.d);
                     animIntervals=cs.fr.map(()=>0.1);
                     fc.textContent=`Frame: 1/${animFrames.length}`;
@@ -780,10 +944,9 @@ Respond ONLY with the JSON object, no other text.`;
                 if(!f){rp();return}
                 const c=document.createElement('canvas');
                 c.id='cv';
-                f.render(c,cs.p);
+                f.render(c,cs.p,tf);
                 pc.innerHTML='';
                 pc.appendChild(c);
-                // Support both GROUP frames and multiple SINGLE frames
                 const hasMultipleFrames=isGroup?frameData.d.f.length>1:cs.fr.length>1;
                 ac.style.display=hasMultipleFrames?'flex':'none';
                 if(isGroup){
@@ -791,7 +954,6 @@ Respond ONLY with the JSON object, no other text.`;
                     animIntervals=frameData.d.i;
                     fc.textContent=`Frame: 1/${animFrames.length}`;
                 }else if(cs.fr.length>1){
-                    // Multiple individual frames
                     animFrames=cs.fr.map(fr=>fr.d);
                     animIntervals=cs.fr.map(()=>0.1);
                     fc.textContent=`Frame: 1/${animFrames.length}`;
@@ -807,27 +969,39 @@ Respond ONLY with the JSON object, no other text.`;
             pf.style.width='10%';
             pb.classList.add('a');
             try{
-                const opt={orientation:parseInt($('ori').value),texFormat:parseInt($('tex').value),maxWidth:parseInt($('mw').value),maxHeight:parseInt($('mh').value)};
+                // Snap maxWidth/maxHeight to multiples of 16
+                const rawMW=parseInt($('mw').value)||128, rawMH=parseInt($('mh').value)||128;
+                const snapMW=Math.max(16,Math.floor(rawMW/16)*16);
+                const snapMH=Math.max(16,Math.floor(rawMH/16)*16);
+                const useGroups=$('ug').checked;
+                const fpVal=parseInt($('vf').value)||10;
+                const opt={orientation:parseInt($('ori').value),texFormat:parseInt($('tex').value),maxWidth:snapMW,maxHeight:snapMH,useGroups,fps:fpVal};
                 const isVideo=lf.type.startsWith('video/');
-                const isImage=lf.type.startsWith('image/');
+                const isTGA=lf.name.toLowerCase().endsWith('.tga');
+                const isImage=lf.type.startsWith('image/')||isTGA;
                 if(isVideo){
                     pf.style.width='40%';
                     const vc=new SPR.VideoConverter();
-                    const vo={...opt,fps:parseInt($('vf').value),maxFrames:30};
-                    cs=await vc.convert(lf,vo);
+                    cs=await vc.convert(lf,opt);
                 }else if(isImage){
                     pf.style.width='40%';
-                    const u=URL.createObjectURL(lf);
-                    const img=new Image();
-                    await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=u});
-                    URL.revokeObjectURL(u);
+                    let img;
+                    if(isTGA&&tgaCanvas){
+                        img=new Image();
+                        img.src=tgaCanvas.toDataURL();
+                        await new Promise((res,rej)=>{if(img.complete)res();else{img.onload=res;img.onerror=rej}});
+                    }else{
+                        const u=URL.createObjectURL(lf);
+                        img=new Image();
+                        await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=u});
+                        URL.revokeObjectURL(u);
+                    }
                     pf.style.width='70%';
                     cs=SPR.Sprite.fromImgs([img],opt);
                 }
-                pf.style.width='90%';
+                pf.style.width='100%';
                 if(cs){
                     cs.dl($('on').value||'sprite.spr');
-                    pf.style.width='100%';
                     show('Sprite saved!','s');
                     $$('.ptb').forEach(b=>b.classList.remove('a'));
                     document.querySelector('[data-t="p"]').classList.add('a');
@@ -836,7 +1010,8 @@ Respond ONLY with the JSON object, no other text.`;
             }catch(e){
                 console.error(e);
                 show('Error: '+e.message,'e');
-                pb.classList.remove('a');
+            }finally{
+                setTimeout(()=>{pb.classList.remove('a');pf.style.width='0%'},600);
                 cb.disabled=false;
             }
         }
