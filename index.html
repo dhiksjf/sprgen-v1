@@ -6,92 +6,226 @@
     <title>SPR Converter</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);min-height:100vh;color:#eee;padding:10px}
-        .c{max-width:1200px;margin:0 auto}
-        header{text-align:center;padding:20px 0}
-        header h1{font-size:2rem;color:#e94560;text-shadow:0 0 20px rgba(233,69,96,.5)}
-        header p{color:#aaa;margin-top:8px;font-size:.9rem}
-        .g{display:grid;grid-template-columns:380px 1fr;gap:15px;margin-top:15px}
-        @media(max-width:900px){.g{grid-template-columns:1fr}}
-        @media(max-width:600px){body{padding:8px}header h1{font-size:1.5rem}.p{padding:15px}}
-        .p{background:rgba(255,255,255,.05);border-radius:15px;padding:20px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1)}
-        .p h2{color:#e94560;margin-bottom:15px;font-size:1.2rem}
-        .dz{border:2px dashed rgba(233,69,96,.5);border-radius:10px;padding:30px 20px;text-align:center;cursor:pointer;transition:all .3s;background:rgba(233,69,96,.05)}
+        html,body{height:100%;overflow-x:hidden}
+        body{font-family:system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#1a1a2e 0%,#16213e 100%);min-height:100vh;color:#eee;padding:12px}
+        .c{max-width:1200px;margin:0 auto;width:100%}
+
+        /* HEADER */
+        header{text-align:center;padding:18px 0 10px}
+        header h1{font-size:clamp(1.3rem,4vw,2rem);color:#e94560;text-shadow:0 0 20px rgba(233,69,96,.5)}
+        header p{color:#aaa;margin-top:6px;font-size:clamp(.78rem,2vw,.9rem)}
+
+        /* GRID */
+        .g{display:grid;grid-template-columns:360px 1fr;gap:14px;margin-top:14px}
+        @media(max-width:860px){.g{grid-template-columns:1fr}}
+
+        /* PANELS */
+        .p{background:rgba(255,255,255,.05);border-radius:14px;padding:18px;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.1)}
+        .p h2{color:#e94560;margin-bottom:14px;font-size:1.1rem}
+        @media(max-width:480px){.p{padding:14px;border-radius:12px}}
+
+        /* DROP ZONE */
+        .dz{border:2px dashed rgba(233,69,96,.5);border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .3s;background:rgba(233,69,96,.05)}
         .dz:hover{border-color:#e94560;background:rgba(233,69,96,.1)}
         .dz.dragover{border-color:#e94560;background:rgba(233,69,96,.2);transform:scale(1.02)}
-        .dz .icon{font-size:2.5rem;margin-bottom:10px}
-        .dz p{color:#aaa;margin:5px 0;font-size:.9rem}
+        .dz .icon{font-size:2.2rem;margin-bottom:8px}
+        .dz p{color:#aaa;margin:4px 0;font-size:.85rem}
         input[type=file]{display:none}
-        .fg{margin-bottom:15px}
-        .fg label{display:block;margin-bottom:5px;color:#ccc;font-size:.9rem}
-        .fg input,.fg select{width:100%;padding:10px 12px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:rgba(0,0,0,.3);color:#fff;font-size:.95rem}
+
+        /* FORM */
+        .fg{margin-bottom:13px}
+        .fg label{display:block;margin-bottom:5px;color:#ccc;font-size:.88rem}
+        .fg input,.fg select{width:100%;padding:9px 11px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:rgba(0,0,0,.3);color:#fff;font-size:.9rem}
         .fg input:focus,.fg select:focus{outline:none;border-color:#e94560}
         .fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-        .btn{padding:12px 24px;border:none;border-radius:8px;cursor:pointer;font-size:1rem;font-weight:600;transition:all .3s;width:100%}
+        .btn{padding:11px 20px;border:none;border-radius:8px;cursor:pointer;font-size:.95rem;font-weight:600;transition:all .3s;width:100%}
         .btn-p{background:linear-gradient(135deg,#e94560,#c73e54);color:#fff}
         .btn-p:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(233,69,96,.4)}
         .btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none}
         .btn-s{background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;margin-top:10px}
         .btn-s:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(59,130,246,.4)}
-        .pa{min-height:350px;display:flex;flex-direction:column}
-        .pt{display:flex;gap:5px;margin-bottom:15px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:10px;flex-wrap:wrap}
-        .ptb{padding:8px 16px;background:rgba(255,255,255,.05);border:none;border-radius:6px;color:#aaa;cursor:pointer;transition:all .3s;font-size:.85rem}
+
+        /* PREVIEW PANEL */
+        .pa{min-height:300px;display:flex;flex-direction:column}
+        .pt{display:flex;gap:5px;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:8px;flex-wrap:wrap}
+        .ptb{padding:7px 14px;background:rgba(255,255,255,.05);border:none;border-radius:6px;color:#aaa;cursor:pointer;transition:all .3s;font-size:.82rem}
         .ptb:hover{background:rgba(255,255,255,.1);color:#fff}
         .ptb.a{background:#e94560;color:#fff}
-        .pc{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:280px;background:rgba(0,0,0,.3);border-radius:10px;overflow:hidden;padding:15px}
+        .pc{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:220px;background:rgba(0,0,0,.3);border-radius:10px;overflow:hidden;padding:12px}
         .ph{text-align:center;color:#666}
-        .ph .icon{font-size:3rem;margin-bottom:15px;opacity:.5}
-        #cv{max-width:100%;max-height:350px;image-rendering:pixelated}
-        .ac{display:flex;align-items:center;gap:10px;margin-top:15px;padding:10px;background:rgba(0,0,0,.2);border-radius:8px;flex-wrap:wrap;justify-content:center}
-        .ac button{padding:8px 16px;background:#e94560;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:.9rem}
+        .ph .icon{font-size:2.5rem;margin-bottom:12px;opacity:.5}
+        #cv{max-width:100%;max-height:280px;image-rendering:pixelated}
+        .ac{display:flex;align-items:center;gap:10px;margin-top:12px;padding:9px;background:rgba(0,0,0,.2);border-radius:8px;flex-wrap:wrap;justify-content:center}
+        .ac button{padding:7px 14px;background:#e94560;border:none;border-radius:6px;color:#fff;cursor:pointer;font-size:.85rem}
         .ac button:hover{background:#c73e54}
-        .ac .fc{color:#aaa;font-size:.9rem}
+        .ac .fc{color:#aaa;font-size:.85rem}
+
+        /* FILE LIST */
         .fl{margin-top:10px}
-        .fi-t{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:rgba(0,0,0,.2);border-radius:6px;margin-bottom:8px;flex-wrap:wrap;gap:8px}
-        .fi-t .n{font-size:.9rem;color:#ccc;word-break:break-all}
-        .fi-t .r{color:#e94560;cursor:pointer;padding:4px 10px;border-radius:4px;transition:all .2s;white-space:nowrap}
+        .fi-t{display:flex;align-items:center;justify-content:space-between;padding:9px 11px;background:rgba(0,0,0,.2);border-radius:6px;margin-bottom:8px;flex-wrap:wrap;gap:8px}
+        .fi-t .n{font-size:.85rem;color:#ccc;word-break:break-all}
+        .fi-t .r{color:#e94560;cursor:pointer;padding:4px 10px;border-radius:4px;transition:all .2s;white-space:nowrap;font-size:.82rem}
         .fi-t .r:hover{background:rgba(233,69,96,.2)}
-        .fi-t .timer{color:#888;font-size:.8rem}
-        .pb{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-top:10px;display:none}
+
+        /* PROGRESS */
+        .pb{height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;margin-top:10px;display:none}
         .pb.a{display:block}
         .pf{height:100%;background:linear-gradient(90deg,#e94560,#ff6b6b);border-radius:3px;transition:width .3s;width:0%}
-        .sm{text-align:center;padding:10px;margin-top:10px;border-radius:8px;font-size:.9rem;display:none}
+        .sm{text-align:center;padding:9px;margin-top:10px;border-radius:8px;font-size:.88rem;display:none}
         .sm.s{display:block;background:rgba(46,204,113,.2);color:#2ecc71}
         .sm.e{display:block;background:rgba(231,76,60,.2);color:#e74c3c}
         .sm.i{display:block;background:rgba(59,130,246,.2);color:#60a5fa}
-        .ft{display:flex;gap:8px;margin-top:8px;justify-content:center;flex-wrap:wrap}
-        .ft span{font-size:.75rem;padding:3px 8px;background:rgba(255,255,255,.1);border-radius:4px;color:#888}
-        .spr-badge{display:inline-block;padding:4px 10px;background:rgba(147,51,234,.3);color:#d8b4fe;border-radius:4px;font-size:.8rem}
-        .cg{display:flex;align-items:center;gap:8px;margin-bottom:15px}
-        .cg input[type=checkbox]{width:18px;height:18px;cursor:pointer}
-        .cg label{color:#ccc;cursor:pointer}
-        /* AI Dialog */
-        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
-        .modal.a{display:flex}
-        .modal-c{background:linear-gradient(135deg,#1e1e3f 0%,#16213e 100%);border-radius:15px;padding:25px;max-width:500px;width:100%;border:1px solid rgba(233,69,96,.3);max-height:90vh;overflow-y:auto}
-        .modal-c h3{color:#e94560;margin-bottom:15px;font-size:1.3rem}
-        .modal-c p{color:#ccc;margin-bottom:15px;line-height:1.5}
-        .q-box{background:rgba(0,0,0,.3);border-radius:10px;padding:15px;margin-bottom:15px}
-        .q-box label{display:block;color:#aaa;margin-bottom:8px;font-size:.9rem}
-        .q-box select,.q-box input{width:100%;padding:10px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:rgba(0,0,0,.3);color:#fff}
-        .q-box select:focus,.q-box input:focus{outline:none;border-color:#e94560}
-        .ai-status{display:flex;align-items:center;gap:10px;margin-top:15px;padding:12px;background:rgba(59,130,246,.1);border-radius:8px;color:#60a5fa;font-size:.9rem}
-        .ai-status.loading::before{content:'';width:16px;height:16px;border:2px solid #60a5fa;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite}
-        @keyframes spin{to{transform:rotate(360deg)}}
-        .ai-result{background:rgba(46,204,113,.1);border-radius:8px;padding:12px;margin-top:15px;color:#2ecc71;font-size:.9rem}
-        .ai-result h4{margin-bottom:8px;color:#2ecc71}
-        .ai-result p{margin:4px 0;color:#aaa}
-        .ai-result span{color:#fff;font-weight:600}
-        .modal-btns{display:flex;gap:10px;margin-top:20px}
-        .modal-btns button{flex:1;padding:12px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:all .3s}
-        .btn-ai{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff}
-        .btn-ai:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(139,92,246,.4)}
-        .btn-skip{background:rgba(255,255,255,.1);color:#ccc}
-        .btn-skip:hover{background:rgba(255,255,255,.2)}
-        .btn-apply{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
-        .btn-apply:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(16,185,129,.4)}
-        footer{text-align:center;padding:20px;color:#666;font-size:.85rem}
+        .ft{display:flex;gap:6px;margin-top:8px;justify-content:center;flex-wrap:wrap}
+        .ft span{font-size:.72rem;padding:3px 7px;background:rgba(255,255,255,.1);border-radius:4px;color:#888}
+        .spr-badge{display:inline-block;padding:3px 9px;background:rgba(147,51,234,.3);color:#d8b4fe;border-radius:4px;font-size:.75rem}
+        .cg{display:flex;align-items:center;gap:8px;margin-bottom:13px}
+        .cg input[type=checkbox]{width:16px;height:16px;cursor:pointer;flex-shrink:0}
+        .cg label{color:#ccc;cursor:pointer;font-size:.88rem}
+
+        /* FOOTER */
+        footer{text-align:center;padding:18px;color:#666;font-size:.82rem}
         footer a{color:#e94560;text-decoration:none}
+
+        /* API Key Banner (unused, kept for compat) */
+        .api-banner{display:none}
+        .key-status,.api-key-row,.btn-save-key{display:none}
+
+        /* === ANIMATIONS === */
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse-glow{0%,100%{box-shadow:0 0 10px rgba(139,92,246,.3)}50%{box-shadow:0 0 24px rgba(139,92,246,.7),0 0 44px rgba(139,92,246,.25)}}
+        @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+        @keyframes gradShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+        @keyframes popIn{0%{transform:scale(.75);opacity:0}70%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+        @keyframes orb{0%{transform:rotate(0deg) translateX(22px) rotate(0deg)}100%{transform:rotate(360deg) translateX(22px) rotate(-360deg)}}
+        @keyframes ripple{0%{transform:scale(1);opacity:.5}100%{transform:scale(2.2);opacity:0}}
+        @keyframes pulse-glow2{0%,100%{box-shadow:0 0 16px rgba(233,69,96,.5)}50%{box-shadow:0 0 36px rgba(233,69,96,.9),0 0 60px rgba(233,69,96,.25)}}
+        @keyframes typingBounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-7px);opacity:1}}
+
+        /* === AI MODAL === */
+        .modal{position:fixed;inset:0;background:rgba(0,0,0,.87);display:none;align-items:center;justify-content:center;z-index:1000;padding:12px;backdrop-filter:blur(6px)}
+        .modal.a{display:flex}
+        .modal-c{background:linear-gradient(145deg,#1a1a35 0%,#0f1628 100%);border-radius:18px;padding:22px;max-width:500px;width:100%;border:1px solid rgba(233,69,96,.22);max-height:calc(100vh - 24px);overflow-y:auto;box-shadow:0 24px 70px rgba(0,0,0,.6)}
+        .modal-c::-webkit-scrollbar{width:4px}
+        .modal-c::-webkit-scrollbar-track{background:transparent}
+        .modal-c::-webkit-scrollbar-thumb{background:rgba(233,69,96,.3);border-radius:4px}
+        .modal-c h3{color:#e94560;margin-bottom:12px;font-size:1.15rem}
+        .modal-c>p{color:#ccc;margin-bottom:12px;line-height:1.5;font-size:.88rem}
+        .q-box{background:rgba(0,0,0,.28);border-radius:10px;padding:13px;margin-bottom:12px}
+        .q-box label{display:block;color:#aaa;margin-bottom:7px;font-size:.86rem}
+        .q-box select,.q-box input{width:100%;padding:9px 10px;border:1px solid rgba(255,255,255,.18);border-radius:8px;background:rgba(0,0,0,.3);color:#fff;font-size:.88rem}
+        .q-box select:focus,.q-box input:focus{outline:none;border-color:#e94560}
+        .ai-status{display:flex;align-items:center;gap:10px;margin-top:12px;padding:11px;background:rgba(59,130,246,.1);border-radius:8px;color:#60a5fa;font-size:.86rem}
+        .ai-status.loading::before{content:'';width:14px;height:14px;border:2px solid #60a5fa;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;flex-shrink:0}
+        .ai-result{display:none}
+        .modal-btns{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+        .modal-btns button{flex:1;min-width:90px;padding:11px 8px;border:none;border-radius:8px;cursor:pointer;font-weight:600;transition:all .3s;font-size:.88rem}
+        .btn-ai{background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff}
+        .btn-ai:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(139,92,246,.4)}
+        .btn-skip{background:rgba(255,255,255,.1);color:#ccc}
+        .btn-skip:hover{background:rgba(255,255,255,.18)}
+        .btn-apply{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+        .btn-apply:hover{transform:translateY(-2px);box-shadow:0 4px 16px rgba(16,185,129,.4)}
+        @media(max-width:400px){.modal-btns{flex-direction:column}.modal-btns button{min-width:unset}}
+
+        /* === CHAT SCENE === */
+        #chatBox{display:none;flex-direction:column;gap:0;margin-bottom:14px}
+        .chat-scene{background:rgba(0,0,0,.32);border-radius:12px;padding:12px;max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;border:1px solid rgba(255,255,255,.06);scroll-behavior:smooth}
+        .chat-scene::-webkit-scrollbar{width:3px}
+        .chat-scene::-webkit-scrollbar-thumb{background:rgba(139,92,246,.35);border-radius:3px}
+        .chat-msg{display:flex;align-items:flex-end;gap:8px;animation:slideUp .3s cubic-bezier(.34,1.4,.64,1) both}
+        .chat-msg.user{flex-direction:row-reverse}
+        .chat-avatar{width:26px;height:26px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.75rem}
+        .chat-avatar.ai{background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 0 10px rgba(139,92,246,.45)}
+        .chat-avatar.user{background:linear-gradient(135deg,#e94560,#c73e54);box-shadow:0 0 8px rgba(233,69,96,.35)}
+        .chat-bubble{max-width:80%;padding:9px 12px;border-radius:14px;font-size:.82rem;line-height:1.5;position:relative}
+        .chat-bubble.ai{background:linear-gradient(135deg,rgba(139,92,246,.16),rgba(109,40,217,.1));border:1px solid rgba(139,92,246,.28);color:#e2d9f3;border-bottom-left-radius:3px}
+        .chat-bubble.user{background:linear-gradient(135deg,rgba(233,69,96,.18),rgba(199,62,84,.1));border:1px solid rgba(233,69,96,.28);color:#fde8ec;border-bottom-right-radius:3px}
+        .typing-indicator{display:flex;align-items:center;gap:4px;padding:9px 12px;background:linear-gradient(135deg,rgba(139,92,246,.13),rgba(109,40,217,.07));border:1px solid rgba(139,92,246,.22);border-radius:14px;border-bottom-left-radius:3px;width:fit-content}
+        .typing-dot{width:6px;height:6px;border-radius:50%;background:#9d6ef5;animation:typingBounce 1.2s ease-in-out infinite}
+        .typing-dot:nth-child(2){animation-delay:.18s}
+        .typing-dot:nth-child(3){animation-delay:.36s}
+
+        /* AI BRAIN ORB */
+        .ai-brain{display:flex;flex-direction:column;align-items:center;padding:14px 0 8px;gap:14px}
+        .orb-wrap{position:relative;width:64px;height:64px;flex-shrink:0}
+        .orb-core{position:absolute;inset:11px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#c4b5fd,#7c3aed 60%,#4c1d95);animation:pulse-glow 2s ease-in-out infinite,float 3s ease-in-out infinite;z-index:2}
+        .orb-ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(139,92,246,.32);animation:ripple 2.4s ease-out infinite}
+        .orb-ring:nth-child(2){animation-delay:.8s}
+        .orb-ring:nth-child(3){animation-delay:1.6s}
+        .orb-particle{position:absolute;width:5px;height:5px;border-radius:50%;background:#d8b4fe;top:50%;left:50%;margin:-2.5px;animation:orb 2.5s linear infinite}
+        .orb-particle:nth-child(5){animation-duration:3.2s;animation-delay:.5s;background:#f9a8d4;width:4px;height:4px}
+        .orb-particle:nth-child(6){animation-duration:1.9s;animation-delay:1s;background:#93c5fd;width:3px;height:3px}
+        .brain-steps{display:flex;flex-direction:column;gap:5px;width:100%}
+        .brain-step{display:flex;align-items:center;gap:9px;padding:6px 10px;border-radius:8px;font-size:.8rem;color:#aaa;transition:all .4s;border:1px solid transparent}
+        .brain-step.active{background:rgba(139,92,246,.11);border-color:rgba(139,92,246,.28);color:#d8b4fe}
+        .brain-step.done{background:rgba(16,185,129,.07);border-color:rgba(16,185,129,.22);color:#6ee7b7}
+        .brain-step-icon{font-size:.9rem;width:18px;text-align:center;flex-shrink:0}
+        .brain-step-bar{height:2px;border-radius:2px;background:rgba(255,255,255,.07);overflow:hidden;margin-left:auto;width:50px}
+        .brain-step-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,#8b5cf6,#d8b4fe);width:0%;transition:width .6s ease}
+
+        /* AI RESULT CARD */
+        .ai-result-card{background:linear-gradient(135deg,rgba(16,185,129,.09),rgba(5,150,105,.06));border:1px solid rgba(16,185,129,.28);border-radius:12px;padding:14px;margin-top:10px;animation:popIn .4s cubic-bezier(.34,1.4,.64,1)}
+        .ai-result-card h4{color:#34d399;font-size:.9rem;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+        .ai-result-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+        .ai-result-row:last-of-type{border-bottom:none}
+        .ai-result-label{color:#9ca3af;font-size:.8rem}
+        .ai-result-val{color:#fff;font-weight:700;font-size:.84rem;background:rgba(255,255,255,.07);padding:2px 8px;border-radius:5px}
+        .ai-explain{margin-top:9px;padding:9px;background:rgba(0,0,0,.22);border-radius:8px;color:#94a3b8;font-size:.78rem;line-height:1.55;font-style:italic}
+
+        /* === CONVERT OVERLAY === */
+        #convertOverlay{
+            position:fixed;inset:0;z-index:2000;display:none;
+            align-items:center;justify-content:center;
+            background:rgba(0,0,0,.93);backdrop-filter:blur(14px);
+            overflow-y:auto;padding:16px
+        }
+        #convertOverlay.a{display:flex}
+        .cv-box{
+            width:100%;max-width:400px;
+            display:flex;flex-direction:column;align-items:center;
+            padding:24px 20px;
+            background:rgba(255,255,255,.03);
+            border:1px solid rgba(233,69,96,.15);
+            border-radius:20px;
+            margin:auto
+        }
+        .cv-orb{position:relative;width:82px;height:82px;margin-bottom:20px;flex-shrink:0}
+        .cv-orb-core{position:absolute;inset:14px;border-radius:50%;background:linear-gradient(135deg,#ff6b6b,#e94560 50%,#c73e54);animation:pulse-glow2 1.8s ease-in-out infinite,float 2.5s ease-in-out infinite}
+        .cv-ring{position:absolute;inset:0;border-radius:50%;border:1.5px solid rgba(233,69,96,.28);animation:ripple 2s ease-out infinite}
+        .cv-ring:nth-child(2){animation-delay:.65s}
+        .cv-ring:nth-child(3){animation-delay:1.3s}
+        .cv-particle{position:absolute;width:4px;height:4px;border-radius:50%;background:#ff8fa3;top:50%;left:50%;margin:-2px;animation:orb 2.2s linear infinite}
+        .cv-particle:nth-child(5){background:#fbbf24;animation-duration:3s;animation-delay:.4s}
+        .cv-particle:nth-child(6){background:#a78bfa;animation-duration:1.7s;animation-delay:.9s;width:3px;height:3px}
+        .cv-title{font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:4px;letter-spacing:.02em;text-align:center}
+        .cv-sub{color:#777;font-size:.82rem;margin-bottom:20px;text-align:center;min-height:1.2em}
+        .cv-progress-wrap{width:100%;background:rgba(255,255,255,.07);border-radius:99px;height:7px;overflow:hidden;margin-bottom:8px;border:1px solid rgba(255,255,255,.07)}
+        .cv-progress-bar{height:100%;border-radius:99px;background:linear-gradient(90deg,#e94560,#ff6b6b,#fbbf24);background-size:200% 100%;animation:gradShift 2s linear infinite;transition:width .5s cubic-bezier(.4,0,.2,1);width:0%}
+        .cv-pct{color:#e94560;font-size:.82rem;font-weight:700;margin-bottom:18px;font-variant-numeric:tabular-nums}
+        .cv-steps{display:flex;flex-direction:column;gap:6px;width:100%}
+        .cv-step{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;transition:all .4s cubic-bezier(.4,0,.2,1);border:1px solid transparent;opacity:.35}
+        .cv-step.active{opacity:1;background:rgba(233,69,96,.09);border-color:rgba(233,69,96,.28);animation:slideUp .3s ease}
+        .cv-step.done{opacity:.7;background:rgba(16,185,129,.06);border-color:rgba(16,185,129,.18)}
+        .cv-step-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+        .cv-step-label{flex:1;font-size:.82rem;color:#aaa}
+        .cv-step.active .cv-step-label{color:#fff;font-weight:600}
+        .cv-step.done .cv-step-label{color:#6ee7b7}
+        .cv-step-tick{font-size:.8rem;opacity:0;transition:opacity .3s;color:#6ee7b7}
+        .cv-step.done .cv-step-tick{opacity:1}
+
+        /* Small phone tweaks */
+        @media(max-width:380px){
+            .cv-box{padding:18px 14px}
+            .cv-orb{width:68px;height:68px}
+            .cv-orb-core{inset:11px}
+            .cv-title{font-size:1.05rem}
+            .cv-step{padding:7px 10px}
+            .cv-step-label{font-size:.78rem}
+            .chat-scene{max-height:180px}
+            .modal-c{padding:16px}
+        }
     </style>
 </head>
 <body>
@@ -152,6 +286,34 @@
         <div class="modal-c">
             <h3>🎬 Video Detected - AI Optimization</h3>
             <p>Answer a few questions to let AI find the best conversion settings for your video.</p>
+
+            <!-- API Key Section -->
+            <div class="q-box" id="apiKeyBox">
+                <label>🔑 OpenRouter API Key <a href="https://openrouter.ai/keys" target="_blank" style="color:#a78bfa;font-size:.78rem;margin-left:6px">Get a free key →</a></label>
+                <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+                    <input type="password" id="apiKeyInput" placeholder="sk-or-v1-..." autocomplete="off" spellcheck="false" style="flex:1;padding:9px 12px;border:1px solid rgba(139,92,246,.4);border-radius:8px;background:rgba(0,0,0,.4);color:#fff;font-size:.85rem;font-family:monospace">
+                    <button onclick="saveApiKey()" style="padding:9px 14px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;border-radius:8px;color:#fff;font-size:.83rem;font-weight:600;cursor:pointer;white-space:nowrap">Save</button>
+                </div>
+                <div id="keyStatus" style="margin-top:6px;font-size:.78rem;display:none"></div>
+            </div>
+
+            <!-- No-key card (shown when Analyze clicked without a key) -->
+            <div id="noKeyCard" style="display:none;flex-direction:column;align-items:center;text-align:center;padding:28px 20px;background:linear-gradient(135deg,rgba(139,92,246,.12),rgba(124,58,237,.07));border:1px solid rgba(139,92,246,.35);border-radius:14px;margin-bottom:16px;animation:fadeIn .25s ease">
+                <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,rgba(139,92,246,.25),rgba(124,58,237,.15));border:2px solid rgba(139,92,246,.4);display:flex;align-items:center;justify-content:center;font-size:1.6rem;margin-bottom:16px;box-shadow:0 0 24px rgba(139,92,246,.2)">🔑</div>
+                <h4 style="color:#d8b4fe;font-size:1.05rem;margin-bottom:8px">API Key Required</h4>
+                <p style="color:#9ca3af;font-size:.85rem;line-height:1.6;margin-bottom:18px;max-width:320px">To use AI optimization, you need a free <b style="color:#c4b5fd">OpenRouter API key</b>. It only takes 30 seconds to get one.</p>
+                <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px">
+                    <div style="display:flex;gap:8px">
+                        <input type="password" id="inlineKeyInput" placeholder="Paste your key here  (sk-or-v1-...)" autocomplete="off" spellcheck="false" style="flex:1;padding:10px 13px;border:1px solid rgba(139,92,246,.45);border-radius:9px;background:rgba(0,0,0,.45);color:#fff;font-size:.84rem;font-family:monospace;outline:none" onfocus="this.style.borderColor='#8b5cf6'" onblur="this.style.borderColor='rgba(139,92,246,.45)'">
+                        <button onclick="saveInlineKey()" style="padding:10px 16px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);border:none;border-radius:9px;color:#fff;font-size:.84rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">Save & Analyze</button>
+                    </div>
+                    <div id="inlineKeyStatus" style="font-size:.78rem;display:none;text-align:left;padding:6px 10px;border-radius:7px"></div>
+                    <a href="https://openrouter.ai/keys" target="_blank" style="color:#a78bfa;font-size:.8rem;text-decoration:none;opacity:.8">Don't have a key yet? Get one free at openrouter.ai →</a>
+                </div>
+            </div>
+
+            <!-- Questions -->
+            <div id="questionsSection">
             <div class="q-box">
                 <label>1. What type of content is this?</label>
                 <select id="q1">
@@ -189,8 +351,12 @@
                     <option value="small">Small file (compact)</option>
                 </select>
             </div>
+            </div><!-- /questionsSection -->
+
             <div class="ai-status" id="aiStatus" style="display:none"></div>
-            <div class="ai-result" id="aiResult" style="display:none"></div>
+            <div class="ai-result" id="aiResult"></div>
+            <!-- Chat conversation area -->
+            <div id="chatBox"></div>
             <div class="modal-btns">
                 <button class="btn-skip" onclick="skipAI()">Skip (Manual)</button>
                 <button class="btn-ai" onclick="analyzeWithAI()">Analyze with AI</button>
@@ -580,7 +746,45 @@
         }
 
         // ===== App Code =====
-        const OPENROUTER_KEY='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';
+        let OPENROUTER_KEY = localStorage.getItem('openrouter_key') || '';
+
+        function saveApiKey(){
+            const val = document.getElementById('apiKeyInput').value.trim();
+            const status = document.getElementById('keyStatus');
+            status.style.display = 'inline-block';
+            status.style.fontSize = '.78rem';
+            status.style.marginTop = '6px';
+            if(!val){
+                status.textContent = '⚠️ Please paste a key first.';
+                status.style.color = '#f59e0b';
+                return;
+            }
+            if(!val.startsWith('sk-or-')){
+                status.textContent = '❌ Doesn\'t look like an OpenRouter key (should start with sk-or-).';
+                status.style.color = '#e74c3c';
+                return;
+            }
+            OPENROUTER_KEY = val;
+            localStorage.setItem('openrouter_key', val);
+            document.getElementById('apiKeyInput').value = '';
+            document.getElementById('apiKeyInput').placeholder = '✓ Key saved — paste a new one to replace';
+            status.textContent = '✅ Key saved! AI features are now enabled.';
+            status.style.color = '#2ecc71';
+        }
+
+        function initKeyUI(){
+            const status = document.getElementById('keyStatus');
+            const input = document.getElementById('apiKeyInput');
+            if(OPENROUTER_KEY){
+                input.placeholder = '✓ Key saved — paste a new one to replace';
+                status.textContent = '✅ Key saved. AI features are enabled.';
+                status.style.cssText = 'display:inline-block;color:#2ecc71;font-size:.78rem;margin-top:6px';
+            } else {
+                status.textContent = '⚠️ No key set — paste yours above to enable AI analysis.';
+                status.style.cssText = 'display:inline-block;color:#f59e0b;font-size:.78rem;margin-top:6px';
+            }
+        }
+        initKeyUI();
         
         let lf=null,cs=null,aiTimer=null,cf=0,ip=false,isSPR=false,animFrames=[],animIntervals=[],tgaCanvas=null;
         let aiRecommendedSettings=null;
@@ -734,8 +938,12 @@
         function showAIModal(){
             $('aiModal').classList.add('a');
             $('aiStatus').style.display='none';
-            $('aiResult').style.display='none';
             $('applyBtn').style.display='none';
+            $('noKeyCard').style.display='none';
+            $('questionsSection').style.display='block';
+            $('inlineKeyStatus').style.display='none';
+            $('chatBox').innerHTML='';
+            $('chatBox').style.display='none';
             aiRecommendedSettings=null;
         }
         
@@ -743,86 +951,215 @@
             $('aiModal').classList.remove('a');
         }
         
+        function saveInlineKey(){
+            const val = document.getElementById('inlineKeyInput').value.trim();
+            const status = document.getElementById('inlineKeyStatus');
+            status.style.display = 'block';
+            if(!val){
+                status.textContent = '⚠️ Please paste your key first.';
+                status.style.cssText = 'display:block;font-size:.78rem;color:#f59e0b;background:rgba(245,158,11,.1);padding:6px 10px;border-radius:7px;text-align:left';
+                return;
+            }
+            if(!val.startsWith('sk-or-')){
+                status.textContent = '❌ That doesn\'t look right — OpenRouter keys start with  sk-or-';
+                status.style.cssText = 'display:block;font-size:.78rem;color:#e74c3c;background:rgba(231,76,60,.1);padding:6px 10px;border-radius:7px;text-align:left';
+                return;
+            }
+            OPENROUTER_KEY = val;
+            localStorage.setItem('openrouter_key', val);
+            document.getElementById('inlineKeyInput').value = '';
+            status.textContent = '✅ Key saved! Running analysis...';
+            status.style.cssText = 'display:block;font-size:.78rem;color:#2ecc71;background:rgba(46,204,113,.1);padding:6px 10px;border-radius:7px;text-align:left';
+            // Also update the top key input status
+            const topInput = document.getElementById('apiKeyInput');
+            const topStatus = document.getElementById('keyStatus');
+            if(topInput) topInput.placeholder = '✓ Key saved — paste a new one to replace';
+            if(topStatus){ topStatus.textContent='✅ Key saved. AI features are enabled.'; topStatus.style.cssText='display:inline-block;color:#2ecc71;font-size:.78rem;margin-top:6px'; }
+            // Proceed to analysis after short delay
+            setTimeout(()=>{
+                document.getElementById('noKeyCard').style.display='none';
+                document.getElementById('questionsSection').style.display='block';
+                analyzeWithAI();
+            }, 800);
+        }
+
         function skipAI(){
             hideAIModal();
         }
         
         async function analyzeWithAI(){
-            const q1=$('q1').value,q2=$('q2').value,q3=$('q3').value,q4=$('q4').value;
-            const status=$('aiStatus');
-            const result=$('aiResult');
-            const applyBtn=$('applyBtn');
-            
-            status.style.display='flex';
-            status.classList.add('loading');
-            status.textContent='Analyzing with AI...';
-            result.style.display='none';
-            applyBtn.style.display='none';
-            
-            const prompt=`You are an expert in Half-Life GoldSrc sprite optimization. Based on user preferences, recommend the best conversion settings.
+            if(!OPENROUTER_KEY){
+                document.getElementById('questionsSection').style.display='none';
+                document.getElementById('noKeyCard').style.display='flex';
+                return;
+            }
+            document.getElementById('questionsSection').style.display='none';
+            document.getElementById('noKeyCard').style.display='none';
+            document.getElementById('aiStatus').style.display='none';
 
-User's video preferences:
-- Content type: ${q1}
-- Animation smoothness: ${q2}
-- Visual style: ${q3}
-- Size priority: ${q4}
+            const q1=$('q1'), q2=$('q2'), q3=$('q3'), q4=$('q4');
+            const userSummary = `${q1.options[q1.selectedIndex].text} · ${q2.options[q2.selectedIndex].text} · ${q3.options[q3.selectedIndex].text} · ${q4.options[q4.selectedIndex].text}`;
 
-Recommend these settings in JSON format:
-{
-  "orientation": number (0-4, VP Parallel Upright=0, Facing Upright=1, VP Parallel=2, Oriented=3, VP Parallel Oriented=4),
-  "texFormat": number (0=Normal, 1=Additive for glowing effects, 2=IndexAlpha, 3=AlphaTest),
-  "maxWidth": number (16-256, multiple of 16),
-  "maxHeight": number (16-256, multiple of 16),
-  "fps": number (1-30),
-  "useGroups": boolean (true for animations),
-  "explanation": "brief explanation of why these settings"
-}
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML = '';
+            chatBox.style.display = 'flex';
+            chatBox.style.flexDirection = 'column';
+            chatBox.style.gap = '0';
 
-Respond ONLY with the JSON object, no other text.`;
-            
-            try{
-                const response=await fetch('https://openrouter.ai/api/v1/chat/completions',{
-                    method:'POST',
-                    headers:{
-                        'Authorization':`Bearer ${OPENROUTER_KEY}`,
-                        'Content-Type':'application/json',
-                        'HTTP-Referer':window.location.href,
-                        'X-Title':'SPR Converter'
-                    },
-                    body:JSON.stringify({
-                        model:'arcee-ai/trinity-large-preview:free',
-                        messages:[{role:'user',content:prompt}],
-                        temperature:0.3
-                    })
+            // Scene container
+            const scene = document.createElement('div');
+            scene.className = 'chat-scene';
+            chatBox.appendChild(scene);
+
+            const delay = ms => new Promise(r => setTimeout(r, ms));
+
+            function addMsg(role, html, animDelay=0){
+                return new Promise(async r => {
+                    await delay(animDelay);
+                    const row = document.createElement('div');
+                    row.className = `chat-msg ${role}`;
+                    row.style.animationDelay = '0ms';
+                    const avatar = document.createElement('div');
+                    avatar.className = `chat-avatar ${role}`;
+                    avatar.textContent = role==='ai' ? '🤖' : '👤';
+                    const bubble = document.createElement('div');
+                    bubble.className = `chat-bubble ${role}`;
+                    bubble.innerHTML = html;
+                    row.appendChild(avatar);
+                    row.appendChild(bubble);
+                    scene.appendChild(row);
+                    scene.scrollTop = scene.scrollHeight;
+                    r();
                 });
-                
-                const data=await response.json();
-                status.classList.remove('loading');
-                
-                if(data.choices&&data.choices[0]&&data.choices[0].message){
-                    const content=data.choices[0].message.content;
-                    const jsonMatch=content.match(/\{[\s\S]*\}/);
-                    if(jsonMatch){
-                        aiRecommendedSettings=JSON.parse(jsonMatch[0]);
-                        
-                        status.innerHTML='✅ Analysis complete!';
-                        result.innerHTML=`<h4>Recommended Settings:</h4>
-                            <p>Orientation: <span>${getOrientationName(aiRecommendedSettings.orientation)}</span></p>
-                            <p>Texture Format: <span>${getTexFormatName(aiRecommendedSettings.texFormat)}</span></p>
-                            <p>Max Size: <span>${aiRecommendedSettings.maxWidth}x${aiRecommendedSettings.maxHeight}</span></p>
-                            <p>FPS: <span>${aiRecommendedSettings.fps}</span></p>
-                            <p style="margin-top:10px;color:#888;font-size:.85rem">${aiRecommendedSettings.explanation}</span></p>`;
-                        result.style.display='block';
-                        applyBtn.style.display='block';
-                    }else{
-                        throw new Error('Invalid AI response format');
-                    }
-                }else{
-                    throw new Error('No response from AI');
+            }
+
+            function addTyping(){
+                const row = document.createElement('div');
+                row.className = 'chat-msg ai';
+                row.id = 'typingRow';
+                const avatar = document.createElement('div');
+                avatar.className = 'chat-avatar ai';
+                avatar.textContent = '🤖';
+                const indicator = document.createElement('div');
+                indicator.className = 'typing-indicator';
+                for(let i=0;i<3;i++){const d=document.createElement('div');d.className='typing-dot';indicator.appendChild(d);}
+                row.appendChild(avatar);
+                row.appendChild(indicator);
+                scene.appendChild(row);
+                scene.scrollTop = scene.scrollHeight;
+                return row;
+            }
+
+            function removeTyping(){
+                const t = document.getElementById('typingRow');
+                if(t) t.remove();
+            }
+
+            // AI brain orb section
+            const brainWrap = document.createElement('div');
+            brainWrap.className = 'ai-brain';
+            brainWrap.innerHTML = `
+                <div class="orb-wrap">
+                    <div class="orb-ring"></div><div class="orb-ring"></div><div class="orb-ring"></div>
+                    <div class="orb-core"></div>
+                    <div class="orb-particle"></div><div class="orb-particle"></div><div class="orb-particle"></div>
+                </div>
+                <div class="brain-steps" id="brainSteps">
+                    <div class="brain-step" id="bs0"><span class="brain-step-icon">🔍</span><span>Reading preferences</span><div class="brain-step-bar"><div class="brain-step-fill" id="bsf0"></div></div></div>
+                    <div class="brain-step" id="bs1"><span class="brain-step-icon">🧠</span><span>Analyzing content type</span><div class="brain-step-bar"><div class="brain-step-fill" id="bsf1"></div></div></div>
+                    <div class="brain-step" id="bs2"><span class="brain-step-icon">⚙️</span><span>Computing optimal settings</span><div class="brain-step-bar"><div class="brain-step-fill" id="bsf2"></div></div></div>
+                    <div class="brain-step" id="bs3"><span class="brain-step-icon">✨</span><span>Finalizing recommendations</span><div class="brain-step-bar"><div class="brain-step-fill" id="bsf3"></div></div></div>
+                </div>`;
+            chatBox.appendChild(brainWrap);
+
+            // Conversation sequence
+            await addMsg('user', `<b>My video:</b><br><span style="opacity:.8;font-size:.8rem">${userSummary}</span>`);
+            await delay(500);
+            let typingRow = addTyping();
+            await delay(900);
+            removeTyping();
+            await addMsg('ai', '✦ Got it! Let me analyze your settings…');
+            await delay(400);
+
+            // Activate brain steps
+            async function activateStep(i, dur=700){
+                const step = document.getElementById(`bs${i}`);
+                const fill = document.getElementById(`bsf${i}`);
+                if(step){ step.classList.add('active'); }
+                if(fill){ fill.style.width='0%'; await delay(50); fill.style.transition=`width ${dur}ms ease`; fill.style.width='100%'; }
+                await delay(dur);
+                if(step){ step.classList.remove('active'); step.classList.add('done'); }
+            }
+
+            typingRow = addTyping();
+            await activateStep(0, 600);
+            removeTyping();
+            await addMsg('ai', '🔍 Detected content type and style preferences.');
+            await delay(300);
+
+            typingRow = addTyping();
+            await activateStep(1, 700);
+            removeTyping();
+            await addMsg('ai', '🧠 Cross-referencing GoldSrc sprite formats…');
+            await delay(300);
+
+            // Make the API call
+            const prompt=`You are an expert in Half-Life GoldSrc sprite optimization. Based on user preferences, recommend the best conversion settings.
+User's video preferences:
+- Content type: ${q1.value}
+- Animation smoothness: ${q2.value}
+- Visual style: ${q3.value}
+- Size priority: ${q4.value}
+Recommend these settings in JSON format:
+{"orientation":number,"texFormat":number,"maxWidth":number,"maxHeight":number,"fps":number,"useGroups":boolean,"explanation":"brief explanation"}
+Respond ONLY with the JSON object, no other text.`;
+
+            const apiPromise = fetch('https://openrouter.ai/api/v1/chat/completions',{
+                method:'POST',
+                headers:{'Authorization':`Bearer ${OPENROUTER_KEY}`,'Content-Type':'application/json','HTTP-Referer':window.location.href,'X-Title':'SPR Converter'},
+                body:JSON.stringify({model:'arcee-ai/trinity-large-preview:free',messages:[{role:'user',content:prompt}],temperature:0.3})
+            }).then(r=>r.json()).catch(()=>null);
+
+            typingRow = addTyping();
+            await activateStep(2, 900);
+            removeTyping();
+            await addMsg('ai', '⚙️ Optimizing for your target quality & size…');
+            await delay(300);
+
+            typingRow = addTyping();
+            const data = await apiPromise;
+            await activateStep(3, 500);
+            removeTyping();
+
+            // Parse result
+            let settings = null;
+            try{
+                if(data?.choices?.[0]?.message?.content){
+                    const m = data.choices[0].message.content.match(/\{[\s\S]*\}/);
+                    if(m) settings = JSON.parse(m[0]);
                 }
-            }catch(err){
-                status.innerHTML='❌ AI analysis failed. Using defaults.';
-                console.error(err);
+            }catch(e){}
+
+            if(settings){
+                aiRecommendedSettings = settings;
+                await addMsg('ai', '✅ Analysis complete! Here are my recommendations:');
+                await delay(350);
+
+                // Beautiful result card
+                const resultCard = document.createElement('div');
+                resultCard.className = 'ai-result-card';
+                resultCard.innerHTML = `
+                    <h4>🎯 Optimal Settings</h4>
+                    <div class="ai-result-row"><span class="ai-result-label">Orientation</span><span class="ai-result-val">${getOrientationName(settings.orientation)}</span></div>
+                    <div class="ai-result-row"><span class="ai-result-label">Texture Format</span><span class="ai-result-val">${getTexFormatName(settings.texFormat)}</span></div>
+                    <div class="ai-result-row"><span class="ai-result-label">Max Size</span><span class="ai-result-val">${settings.maxWidth} × ${settings.maxHeight}</span></div>
+                    <div class="ai-result-row"><span class="ai-result-label">FPS</span><span class="ai-result-val">${settings.fps} fps</span></div>
+                    ${settings.explanation ? `<div class="ai-explain">"${settings.explanation}"</div>` : ''}`;
+                chatBox.appendChild(resultCard);
+                chatBox.scrollTop = chatBox.scrollHeight;
+                document.getElementById('applyBtn').style.display = 'block';
+            } else {
+                await addMsg('ai', '❌ Couldn\'t reach the AI. Please try again or skip to set manually.');
             }
         }
         
@@ -966,55 +1303,152 @@ Respond ONLY with the JSON object, no other text.`;
             if(typeof SPR==='undefined'){show('Error: SDK not loaded','e');return}
             
             cb.disabled=true;
-            pf.style.width='10%';
-            pb.classList.add('a');
-            try{
-                // Snap maxWidth/maxHeight to multiples of 16
-                const rawMW=parseInt($('mw').value)||128, rawMH=parseInt($('mh').value)||128;
-                const snapMW=Math.max(16,Math.floor(rawMW/16)*16);
-                const snapMH=Math.max(16,Math.floor(rawMH/16)*16);
-                const useGroups=$('ug').checked;
-                const fpVal=parseInt($('vf').value)||10;
-                const opt={orientation:parseInt($('ori').value),texFormat:parseInt($('tex').value),maxWidth:snapMW,maxHeight:snapMH,useGroups,fps:fpVal};
-                const isVideo=lf.type.startsWith('video/');
-                const isTGA=lf.name.toLowerCase().endsWith('.tga');
-                const isImage=lf.type.startsWith('image/')||isTGA;
-                if(isVideo){
-                    pf.style.width='40%';
-                    const vc=new SPR.VideoConverter();
-                    cs=await vc.convert(lf,opt);
-                }else if(isImage){
-                    pf.style.width='40%';
-                    let img;
-                    if(isTGA&&tgaCanvas){
-                        img=new Image();
-                        img.src=tgaCanvas.toDataURL();
-                        await new Promise((res,rej)=>{if(img.complete)res();else{img.onload=res;img.onerror=rej}});
-                    }else{
-                        const u=URL.createObjectURL(lf);
-                        img=new Image();
-                        await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=u});
-                        URL.revokeObjectURL(u);
+
+            // === CINEMATIC 7s CONVERT OVERLAY ===
+            const overlay = document.getElementById('convertOverlay');
+            const bar = document.getElementById('cvBar');
+            const pct = document.getElementById('cvPct');
+            const sub = document.getElementById('cvSubText');
+            const stepsEl = document.getElementById('cvSteps');
+
+            const steps = [
+                {icon:'📂', label:'Loading source file'},
+                {icon:'🎞️', label:'Extracting frames'},
+                {icon:'🎨', label:'Quantizing color palette'},
+                {icon:'📐', label:'Scaling & fitting dimensions'},
+                {icon:'🔧', label:'Building sprite structure'},
+                {icon:'🗜️', label:'Compressing pixel data'},
+                {icon:'✅', label:'Finalizing SPR file'},
+            ];
+            stepsEl.innerHTML = '';
+            steps.forEach((s,i) => {
+                const el = document.createElement('div');
+                el.className = 'cv-step';
+                el.id = `cvStep${i}`;
+                el.innerHTML = `<span class="cv-step-icon">${s.icon}</span><span class="cv-step-label">${s.label}</span><span class="cv-step-tick">✓</span>`;
+                stepsEl.appendChild(el);
+            });
+
+            bar.style.width = '0%';
+            pct.textContent = '0%';
+            sub.textContent = 'Warming up the engine…';
+            overlay.classList.add('a');
+
+            const totalMs = 7000;
+            const startTime = Date.now();
+
+            // Animate progress smoothly
+            function animateProgress(targetPct, duration){
+                return new Promise(resolve => {
+                    const start = parseFloat(bar.style.width)||0;
+                    const diff = targetPct - start;
+                    const t0 = Date.now();
+                    function tick(){
+                        const elapsed = Date.now() - t0;
+                        const progress = Math.min(elapsed / duration, 1);
+                        const eased = progress < .5 ? 2*progress*progress : -1+(4-2*progress)*progress;
+                        const current = start + diff * eased;
+                        bar.style.width = current + '%';
+                        pct.textContent = Math.round(current) + '%';
+                        if(progress < 1) requestAnimationFrame(tick);
+                        else resolve();
                     }
-                    pf.style.width='70%';
-                    cs=SPR.Sprite.fromImgs([img],opt);
-                }
-                pf.style.width='100%';
-                if(cs){
-                    cs.dl($('on').value||'sprite.spr');
-                    show('Sprite saved!','s');
-                    $$('.ptb').forEach(b=>b.classList.remove('a'));
-                    document.querySelector('[data-t="p"]').classList.add('a');
-                    up('p');
-                }
-            }catch(e){
-                console.error(e);
-                show('Error: '+e.message,'e');
-            }finally{
-                setTimeout(()=>{pb.classList.remove('a');pf.style.width='0%'},600);
-                cb.disabled=false;
+                    requestAnimationFrame(tick);
+                });
             }
+
+            function activateCvStep(i){ document.getElementById(`cvStep${i}`)?.classList.add('active'); }
+            function doneCvStep(i){ const el=document.getElementById(`cvStep${i}`); el?.classList.remove('active'); el?.classList.add('done'); }
+
+            const subTexts = [
+                'Loading source file…','Extracting frames from video…',
+                'Building optimal color palette…','Scaling to sprite dimensions…',
+                'Encoding sprite data…','Compressing & packing…','Almost there…'
+            ];
+
+            // Kick off the real conversion in background
+            let conversionResult = null, conversionError = null;
+            const conversionPromise = (async()=>{
+                try{
+                    const rawMW=parseInt($('mw').value)||128, rawMH=parseInt($('mh').value)||128;
+                    const snapMW=Math.max(16,Math.floor(rawMW/16)*16);
+                    const snapMH=Math.max(16,Math.floor(rawMH/16)*16);
+                    const useGroups=$('ug').checked;
+                    const fpVal=parseInt($('vf').value)||10;
+                    const opt={orientation:parseInt($('ori').value),texFormat:parseInt($('tex').value),maxWidth:snapMW,maxHeight:snapMH,useGroups,fps:fpVal};
+                    const isVideo=lf.type.startsWith('video/');
+                    const isTGA=lf.name.toLowerCase().endsWith('.tga');
+                    const isImage=lf.type.startsWith('image/')||isTGA;
+                    if(isVideo){
+                        const vc=new SPR.VideoConverter();
+                        conversionResult=await vc.convert(lf,opt);
+                    }else if(isImage){
+                        let img;
+                        if(isTGA&&tgaCanvas){
+                            img=new Image(); img.src=tgaCanvas.toDataURL();
+                            await new Promise((res,rej)=>{if(img.complete)res();else{img.onload=res;img.onerror=rej}});
+                        }else{
+                            const u=URL.createObjectURL(lf); img=new Image();
+                            await new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=u});
+                            URL.revokeObjectURL(u);
+                        }
+                        conversionResult=SPR.Sprite.fromImgs([img],opt);
+                    }
+                }catch(e){ conversionError=e; }
+            })();
+
+            // Cinematic 7-second step sequence
+            const stepDurations = [900, 1100, 1200, 900, 1000, 1000, 900];
+            let cumulative = 0;
+            for(let i=0;i<steps.length;i++){
+                sub.textContent = subTexts[i];
+                activateCvStep(i);
+                const targetPct = Math.round(((cumulative + stepDurations[i]) / totalMs) * 100);
+                await animateProgress(Math.min(targetPct, i===steps.length-1 ? 98 : targetPct), stepDurations[i]);
+                doneCvStep(i);
+                cumulative += stepDurations[i];
+            }
+
+            // Wait for real conversion to finish (if it hasn't already)
+            await conversionPromise;
+
+            // Final push to 100%
+            sub.textContent = 'Saving your sprite…';
+            await animateProgress(100, 300);
+            await new Promise(r=>setTimeout(r,300));
+
+            overlay.classList.remove('a');
+            bar.style.width='0%';
+
+            if(conversionError){
+                show('Error: '+conversionError.message,'e');
+            } else if(conversionResult){
+                cs = conversionResult;
+                cs.dl($('on').value||'sprite.spr');
+                show('Sprite saved! 🎉','s');
+                $$('.ptb').forEach(b=>b.classList.remove('a'));
+                document.querySelector('[data-t="p"]').classList.add('a');
+                up('p');
+            }
+
+            cb.disabled=false;
         }
     </script>
+    <!-- Convert Overlay -->
+    <div id="convertOverlay">
+        <div class="cv-box">
+            <div class="cv-orb">
+                <div class="cv-ring"></div><div class="cv-ring"></div><div class="cv-ring"></div>
+                <div class="cv-orb-core"></div>
+                <div class="cv-particle"></div><div class="cv-particle"></div><div class="cv-particle"></div>
+            </div>
+            <div class="cv-title">Converting Sprite</div>
+            <div class="cv-sub" id="cvSubText">Preparing your file...</div>
+            <div class="cv-progress-wrap"><div class="cv-progress-bar" id="cvBar"></div></div>
+            <div class="cv-pct" id="cvPct">0%</div>
+            <div class="cv-steps" id="cvSteps"></div>
+        </div>
+    </div>
+
 </body>
 </html>
